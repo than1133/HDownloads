@@ -5,6 +5,8 @@ module Profile.HentaiNexus
     , getStoryUrls
     , getStoryName
     , getPageNumber
+    , getImageUrl
+    , getImageName
     ) where
 
 import           Data.ByteString.Lazy.Char8 as C
@@ -65,10 +67,16 @@ getPageUrl :: [Tag C.ByteString] -> [String]
 getPageUrl tags = [""]
 
 getImageUrl :: [Tag C.ByteString] -> String
-getImageUrl tags = ""
+getImageUrl tags = do
+    let it = Prelude.head $ Prelude.filter (tagOpen (=="img") (\a ->Prelude.any (==("id","currImage")) a)) tags
+        il = fromAttrib "src" it
+    C.unpack il
+
+getImageName :: String -> String
+getImageName i = i =~ ("[0-9]+\\.[a-z]+"::String)::String
 
 createArtistDir :: IO ()
-createArtistDir 
+createArtistDir = Prelude.putStr ""
 
 saveImage :: IO ()
-saveImage = 
+saveImage = Prelude.putStr ""

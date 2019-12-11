@@ -24,7 +24,8 @@ testPage = "https://hentainexus.com/read/6182/001"
 main :: IO ()
 main = do
     sess <- newSess
-    t <- getBodyTag sess testStory
-    print $ show $ getPageNumber t
-
+    t <- getBodyTag sess testPage
+    let imgN = getImageUrl t
+    irb <- getResBody sess imgN
+    C.writeFile (getImageName imgN) irb
 

@@ -3,6 +3,7 @@
 module HtmlBody
     ( getBodyTag
     , newSess
+    , getResBody
     ) where
 
 import           Control.Lens
@@ -19,3 +20,8 @@ getBodyTag sess url = do
     r <- Sess.get sess url
     let rb = r ^. responseBody
     return $ parseTags rb
+
+getResBody :: Sess.Session -> String -> IO C.ByteString
+getResBody sess url = do
+    r <- Sess.get sess url
+    return $ r ^. responseBody
