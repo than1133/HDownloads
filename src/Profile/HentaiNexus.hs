@@ -11,6 +11,8 @@ module Profile.HentaiNexus
 
 import           Data.ByteString.Lazy.Char8 as C
 import           Data.List.Split
+import           HtmlBody
+import           System.Directory
 import           Text.HTML.TagSoup
 import           Text.HTML.TagSoup.Match
 import           Text.Regex.TDFA
@@ -48,7 +50,14 @@ isStoryUrl :: Attribute C.ByteString -> Bool
 isStoryUrl a = (=="href") $ C.unpack $ fst a
 
 getStoryName :: [Tag C.ByteString] -> String
-getStoryName tags = ""
+getStoryName tags = do
+    let msn = fromTagText
+            $ Prelude.head
+            $ Prelude.filter (tagText isStoryName) tags
+    (C.unpack msn) =~ ("[A-Z][a-zA-Z0-9[:space:]~!-]+"::String)::String
+
+isStoryName :: C.ByteString -> Bool
+isStoryName  n = n =~ (".::+"::String)::Bool
 
 getPageNumber :: [Tag C.ByteString] -> Int
 getPageNumber tags =
@@ -80,3 +89,15 @@ createArtistDir = Prelude.putStr ""
 
 saveImage :: IO ()
 saveImage = Prelude.putStr ""
+
+{-
+run :: String -> IO ()
+run url = do
+    sess <- newSess
+    t <- getBodyTag sess url
+    let artistName = getArtist t
+        storyUrls = getStoryUrls t
+ -}
+
+
+

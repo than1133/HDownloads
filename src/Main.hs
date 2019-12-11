@@ -12,6 +12,7 @@ import           HtmlBody
 import           Network.Wreq
 import qualified Network.Wreq.Session       as Sess
 import           Profile.HentaiNexus
+import           System.Directory
 import           Text.HTML.TagSoup
 import           Text.HTML.TagSoup.Match
 import           Text.Regex.TDFA
@@ -24,8 +25,11 @@ testPage = "https://hentainexus.com/read/6182/001"
 main :: IO ()
 main = do
     sess <- newSess
-    t <- getBodyTag sess testPage
-    let imgN = getImageUrl t
-    irb <- getResBody sess imgN
-    C.writeFile (getImageName imgN) irb
+    r <- getRes sess testStory
+    b <- getBody r
+    bt <- getBodyTag b
+    -- let imgN = getImageUrl t
+    -- irb <- getResBody sess imgN
+    -- C.writeFile (getImageName imgN) irb
+    createDirectoryIfMissing True $ getStoryName bt
 
