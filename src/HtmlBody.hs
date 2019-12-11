@@ -17,6 +17,7 @@ import           Text.HTML.TagSoup
 
 type Res = Response C.ByteString
 
+
 newSess :: IO Sess.Session
 newSess = Sess.newSession
 

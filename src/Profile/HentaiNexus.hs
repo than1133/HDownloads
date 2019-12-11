@@ -7,11 +7,14 @@ module Profile.HentaiNexus
     , getPageNumber
     , getImageUrl
     , getImageName
+    , saveStory
     ) where
 
 import           Data.ByteString.Lazy.Char8 as C
 import           Data.List.Split
 import           HtmlBody
+import           Network.Wreq
+import           Network.Wreq.Session       as Sess
 import           System.Directory
 import           Text.HTML.TagSoup
 import           Text.HTML.TagSoup.Match
@@ -54,7 +57,8 @@ getStoryName tags = do
     let msn = fromTagText
             $ Prelude.head
             $ Prelude.filter (tagText isStoryName) tags
-    (C.unpack msn) =~ ("[A-Z][a-zA-Z0-9[:space:]~!-]+"::String)::String
+        sn  = msn =~ ("[A-Z][a-zA-Z0-9[:space:]~!-]+" :: String)
+    C.unpack sn
 
 isStoryName :: C.ByteString -> Bool
 isStoryName  n = n =~ (".::+"::String)::Bool
@@ -65,15 +69,20 @@ getPageNumber tags =
     in Prelude.length pageUrl
 
 hasPageUrl :: [Attribute C.ByteString] -> Bool
-hasPageUrl as = do
+hasPageUrl as =
     Prelude.any isPageUrl as
 
 isPageUrl :: Attribute C.ByteString -> Bool
-isPageUrl a = do
+isPageUrl a =
     (snd a) =~ ("/read/[0-9]+/[0-9]+"::String) :: Bool
 
 getPageUrl :: [Tag C.ByteString] -> [String]
-getPageUrl tags = [""]
+getPageUrl tags = do
+    let purl = Prelude.map (host++)
+             $ Prelude.map (C.unpack)
+             $ Prelude.map (fromAttrib "href")
+             $ Prelude.filter (tagOpen (=="a") hasPageUrl) tags
+    purl
 
 getImageUrl :: [Tag C.ByteString] -> String
 getImageUrl tags = do
@@ -90,14 +99,25 @@ createArtistDir = Prelude.putStr ""
 saveImage :: IO ()
 saveImage = Prelude.putStr ""
 
-{-
-run :: String -> IO ()
-run url = do
+saveStory :: String -> IO ()
+saveStory url = do
     sess <- newSess
-    t <- getBodyTag sess url
-    let artistName = getArtist t
-        storyUrls = getStoryUrls t
- -}
+    r <- getRes sess url
+    b <- getBody r
+    bt <- getBodyTag b
+    let sn = getStoryName bt
+        spurl = getPageUrl bt
+    savePageImages sess spurl
 
-
-
+savePageImages :: Sess.Session -> [String] -> IO ()
+savePageImages _ [] = print "Finish"
+savePageImages sess (x:s) = do
+    r <- getRes sess x
+    b <- getBody r
+    bt <- getBodyTag b
+    let imageUrl = getImageUrl bt
+        imageName = getImageName imageUrl
+    ri <- getRes sess imageUrl
+    bi <- getBody ri
+    C.writeFile imageName bi
+    savePageImages sess s
